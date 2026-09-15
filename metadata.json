@@ -1,0 +1,6 @@
+{
+  "name": "Self Study Sound",
+  "description": "Ứng dụng hỗ trợ học tập qua âm nhạc dành cho học sinh THPT: khám phá kiến thức âm nhạc, gợi ý playlist theo tâm trạng, soundboard thư giãn, nhật ký 21 ngày và hộp thư lắng nghe kết nối nhóm nghiên cứu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

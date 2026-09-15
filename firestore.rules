@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'phamdinhminhtien304@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'researcher_admin')
+      );
+    }
+
+    // Profiles and roles
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      
+      // New users can only register with role 'user', unless project creator email
+      allow create: if isAuthenticated() && request.auth.uid == userId && (
+        request.resource.data.role == 'user' ||
+        (request.auth.token.email == 'phamdinhminhtien304@gmail.com' && request.resource.data.role == 'researcher_admin')
+      );
+      
+      // Regular user cannot alter their role. Only admin can grant/change roles.
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (request.auth.uid == userId && request.resource.data.role == resource.data.role)
+      );
+      
+      allow delete: if isAdmin();
+
+      // 21-Day Journal Subcollection (Strictly private to the student)
+      // Researchers do not have access to private student journals
+      match /journals/{dayId} {
+        allow read, write, delete: if isOwner(userId);
+      }
+    }
+
+    // Mailbox Collection
+    match /mailbox/{mailId} {
+      // User can read their own mail; researcher admin can read all mail to reply
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      
+      // Normal user can submit a letter with status 'pending'
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      
+      // User can update their own pending letter (cannot answer own letter); admin can answer letter
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid && 
+         request.resource.data.userId == request.auth.uid &&
+         request.resource.data.status == resource.data.status)
+      );
+      
+      // User can delete their own letter or admin can delete
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // Music Tracks Management Collection
+    match /music_tracks/{trackId} {
+      // Any user can read published tracks; Admin can read all (including hidden)
+      allow read: if resource.data.status == 'published' || isAdmin();
+      
+      // Server-side enforcement: Only verified administrators can add new tracks
+      // Must explicitly confirm rights in the data record
+      allow create: if isAdmin() && 
+        request.resource.data.confirmedRights == true &&
+        request.resource.data.title != null &&
+        request.resource.data.artist != null;
+        
+      // Server-side enforcement: Only verified administrators can update or delete tracks
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

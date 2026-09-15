@@ -1,0 +1,101 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Thông tin người dùng và phân quyền hệ thống",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "researcher_admin"] },
+        "grade": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "JournalDay": {
+      "title": "JournalDay",
+      "type": "object",
+      "description": "Nhật ký theo dõi thói quen học tập 21 ngày cá nhân của học sinh",
+      "properties": {
+        "day": { "type": "number" },
+        "dateStr": { "type": "string" },
+        "status": { "type": "string", "enum": ["completed", "current", "upcoming"] },
+        "studyDurationMinutes": { "type": "number" },
+        "subject": { "type": "string" },
+        "soundEnv": { "type": "string" },
+        "focusScore": { "type": "number" },
+        "stressLevel": { "type": "number" },
+        "note": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["day", "status", "studyDurationMinutes", "subject", "soundEnv"]
+    },
+    "MailboxMessage": {
+      "title": "MailboxMessage",
+      "type": "object",
+      "description": "Thư trao đổi giữa học sinh và Nhóm nghiên cứu",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderGrade": { "type": "string" },
+        "senderEmail": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "answered"] },
+        "createdAt": { "type": "string" },
+        "replyContent": { "type": "string" },
+        "repliedBy": { "type": "string" },
+        "repliedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "content", "status"]
+    },
+    "MusicTrack": {
+      "title": "MusicTrack",
+      "type": "object",
+      "description": "Bài nhạc trong thư viện âm nhạc khoa học của website Self Study Sound",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "Tên bài hát/bản nhạc" },
+        "artist": { "type": "string", "description": "Tác giả/Nghệ sĩ" },
+        "category": { "type": "string", "enum": ["lofi", "pop", "other"], "description": "Nhóm nhạc (Lo-fi không lời, Pop có lời, Khác)" },
+        "sourceType": { "type": "string", "enum": ["upload", "direct_url", "web_source", "project_file"], "description": "Nguồn phát" },
+        "audioUrl": { "type": "string", "description": "Tệp âm thanh hoặc đường dẫn phát nhạc" },
+        "order": { "type": "number", "description": "Thứ tự ưu tiên hiển thị" },
+        "bpm": { "type": "number", "description": "Nhịp tim/BPM thực tế, không tự đoán nếu chưa biết" },
+        "notes": { "type": "string", "description": "Ghi chú/mô tả ngắn về tác dụng hỗ trợ học tập" },
+        "copyrightNote": { "type": "string", "description": "Quyền sử dụng/bản quyền" },
+        "confirmedRights": { "type": "boolean", "description": "Xác nhận có quyền sử dụng hoặc thuộc phạm vi nghiên cứu/học tập" },
+        "status": { "type": "string", "enum": ["published", "hidden"], "description": "Công bố hoặc Ẩn" },
+        "webSourceUrl": { "type": "string" },
+        "webSourcePlatform": { "type": "string" },
+        "storagePath": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileSizeBytes": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "artist", "category", "sourceType", "audioUrl", "order", "confirmedRights", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Hồ sơ người dùng và phân quyền vai trò"
+    },
+    "/users/{userId}/journals/{dayId}": {
+      "schema": "JournalDay",
+      "description": "Nhật ký 21 ngày riêng tư của từng người dùng, chỉ chủ tài khoản mới có quyền xem và sửa"
+    },
+    "/mailbox/{mailId}": {
+      "schema": "MailboxMessage",
+      "description": "Hòm thư góp ý, người dùng chỉ xem thư của mình, nhóm nghiên cứu có quyền đọc và trả lời"
+    },
+    "/music_tracks/{trackId}": {
+      "schema": "MusicTrack",
+      "description": "Danh sách bài nhạc được quản trị viên đăng tải hoặc công bố cho thư viện âm nhạc khoa học"
+    }
+  }
+}
